@@ -1,17 +1,45 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <h1>Disaster Tracker</h1>
+  <EventsMap />
+  <EventsCategoryList />
+  <EventsList :events="events" />
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import EventsList from './components/EventsList.vue';
+import EventsCategoryList from './components/EventsCategoryList.vue';
+import EventsMap from './components/EventsMap.vue';
+
+import useFetcher from './api/useFetcher.js';
+import axios from 'axios';
+import { onMounted } from 'vue';
+
+async function getEvents(params) {
+  const data = await axios.get(
+    'https://eonet.sci.gsfc.nasa.gov/api/v3/events?limit=20',
+    { params }
+  );
+  return data.data.events;
+}
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
-  }
-}
+    EventsList,
+    EventsCategoryList,
+  },
+  props: {
+    events: Object,
+    categories: Object,
+  },
+  setup() {
+    const { data, loading, error, getData } = useFetcher(getEvents);
+
+    onMounted(getData);
+
+    return { data, loading, error, getData };
+  },
+};
 </script>
 
 <style>
