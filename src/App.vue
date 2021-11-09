@@ -1,13 +1,13 @@
 <template>
   <h1>Disaster Tracker</h1>
   <EventsMap />
-  <EventsCategoryList />
-  <EventsList :events="events" />
+  <EventsCategoryInput :categories="categoriesList" />
+  <EventsList :events="eventsList" />
 </template>
 
 <script>
 import EventsList from './components/EventsList.vue';
-import EventsCategoryList from './components/EventsCategoryList.vue';
+import EventsCategoryInput from './components/EventsCategoryInput.vue';
 import EventsMap from './components/EventsMap.vue';
 
 import useFetcher from './api/useFetcher.js';
@@ -16,28 +16,48 @@ import { onMounted } from 'vue';
 
 async function getEvents(params) {
   const data = await axios.get(
-    'https://eonet.sci.gsfc.nasa.gov/api/v3/events?limit=20',
+    'https://eonet.sci.gsfc.nasa.gov/api/v3/events',
     { params }
   );
+  console.log(data.data.events);
   return data.data.events;
+}
+
+async function getCategories(params) {
+  const data = await axios.get(
+    'https://eonet.sci.gsfc.nasa.gov/api/v3/categories',
+    { params }
+  );
+  console.log(data.data.categories);
+  return data.data.categories;
 }
 
 export default {
   name: 'App',
   components: {
     EventsList,
-    EventsCategoryList,
-  },
-  props: {
-    events: Object,
-    categories: Object,
+    EventsCategoryInput,
+    EventsMap,
   },
   setup() {
-    const { data, loading, error, getData } = useFetcher(getEvents);
+    const {
+      data: eventsList,
+      loading: eventsLoading,
+      error: eventsError,
+      getData: eventsFetch,
+    } = useFetcher(getEvents);
 
-    onMounted(getData);
+    const {
+      data: categoriesList,
+      loading: categoriesLoading,
+      error: categoriesError,
+      getData: categoriesFetch,
+    } = useFetcher(getCategories);
 
-    return { data, loading, error, getData };
+    onMounted(eventsFetch);
+    onMounted(categoriesFetch);
+
+    return { eventsList, categoriesList };
   },
 };
 </script>
